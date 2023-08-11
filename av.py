@@ -5,13 +5,14 @@ import requests
 import os
 import subprocess
 
+
+directory = 'rules'
+repo_url = 'https://github.com/Yara-Rules/rules.git'
+
 def update_rules():
     update_button.config(state=tk.DISABLED)
     status_label.config(text="Updating...")
 
-    # Repository URL
-    repo_url = 'https://github.com/yourusername/yourrepo.git'
-    local_path = 'rules'
 
     # Open a new dialog to show the progress bar
     update_dialog = tk.Toplevel(root)
@@ -20,22 +21,23 @@ def update_rules():
     progress_bar.pack(padx=10, pady=10)
     progress_bar.start()
 
-    # Clone or pull the repository
-    if os.path.exists(local_path):
-        subprocess.run(["git", "pull"], cwd=local_path)
-    else:
-        subprocess.run(["git", "clone", repo_url, local_path])
 
-    # Compile the YARA rules
-    rule_files = [os.path.join(local_path, f) for f in os.listdir(local_path) if f.endswith('.yara')]
-    global yara_rules
-    yara_rules = yara.compile(filepaths=rule_files)
+    rule_files_dict = {}
+    for root_dir, _, files in os.walk(directory):
+        for file_name in files:
+            if file_name.endswith('.yara'):
+                file_path = os.path.join(root_dir, file_name)
+                rule_files_dict[file_name] = file_path
+    yara_rules = yara.compile(filepaths=rule_files_dict)
+
 
     # Close the progress bar dialog
     update_dialog.destroy()
     update_button.config(state=tk.NORMAL)
     status_label.config(text="Idle")
     messagebox.showinfo("Update Complete", "YARA rules updated successfully.")
+    
+    return yara_rules
 
 def scan_files():
     file_paths = filedialog.askopenfilenames(title="Select files to scan")
@@ -58,6 +60,24 @@ def scan_files():
     scan_button.config(state=tk.NORMAL)
     status_label.config(text="Idle")
 
+
+def on_update_rules():
+    try:
+        global yara_rules
+
+        # Clone or pull the repository
+        if os.path.exists(directory) and len(os.listdir(directory)) != 0:
+            subprocess.run(["git", "pull"], cwd=directory)
+        else:
+            subprocess.run(["git", "clone", repo_url, directory])
+
+        yara_rules = update_rules()
+        messagebox.showinfo('Update Complete', 'YARA rules updated successfully.')
+    except Exception as e:
+        messagebox.showerror('Update Failed', f'An error occurred: {str(e)}')
+
+
+
 root = tk.Tk()
 root.title("Antivirus")
 
@@ -67,13 +87,15 @@ main_frame.pack(padx=5, pady=5)
 scan_button = tk.Button(main_frame, text="Scan Files", command=scan_files, width=15)
 scan_button.grid(row=0, column=0, padx=5, pady=5)
 
-update_button = tk.Button(main_frame, text="Update YARA Rules", command=update_rules, width=20)
+update_button = tk.Button(main_frame, text="Update YARA Rules", command=on_update_rules, width=20)
 update_button.grid(row=0, column=1, padx=5, pady=5)
 
 status_label = tk.Label(main_frame, text="Idle")
 status_label.grid(row=1, column=0, columnspan=2, pady=5)
 
-# Initial update of rules
-update_rules()
 
-root.mainloop()
+
+if __name__ == "__main__":
+    on_update_rules()
+
+    root.mainloop()
