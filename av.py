@@ -8,7 +8,6 @@ import subprocess
 
 directory = 'rules'
 repo_url = 'https://github.com/Yara-Rules/rules.git'
-yara_rules = None
 
 def update_rules():
     update_button.config(state=tk.DISABLED)
@@ -29,7 +28,7 @@ def update_rules():
             if file_name.endswith('.yara'):
                 file_path = os.path.join(root_dir, file_name)
                 rule_files_dict[file_name] = file_path
-    yara_rules = yara.compile(filepaths=rule_files_dict)
+    yara_rule = yara.compile(filepaths=rule_files_dict)
 
 
     # Close the progress bar dialog
@@ -38,7 +37,7 @@ def update_rules():
     status_label.config(text="Idle")
     messagebox.showinfo("Update Complete", "YARA rules updated successfully.")
     
-    return yara_rules
+    return yara_rule
 
 def scan_files():
     file_paths = filedialog.askopenfilenames(title="Select files to scan")
@@ -64,7 +63,7 @@ def scan_files():
 
 def on_update_rules():
     try:
-        
+        global yara_rules
 
         # Clone or pull the repository
         if os.path.exists(directory) and len(os.listdir(directory)) != 0:
