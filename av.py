@@ -8,6 +8,7 @@ import subprocess
 
 directory = 'rules'
 repo_url = 'https://github.com/Yara-Rules/rules.git'
+yara_rules = None
 
 def update_rules():
     update_button.config(state=tk.DISABLED)
@@ -63,7 +64,7 @@ def scan_files():
 
 def on_update_rules():
     try:
-        global yara_rules
+        
 
         # Clone or pull the repository
         if os.path.exists(directory) and len(os.listdir(directory)) != 0:
