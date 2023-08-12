@@ -6,7 +6,7 @@ import os
 import subprocess
 
 
-directory = 'rules'
+directory = 'rules/yara'
 repo_url = 'https://github.com/Yara-Rules/rules.git'
 
 def update_rules():
@@ -67,7 +67,7 @@ def on_update_rules():
 
         # Clone or pull the repository
         if os.path.exists(directory) and len(os.listdir(directory)) != 0:
-            subprocess.run(["git", "pull"], cwd=directory)
+            subprocess.run(["git", "pull", directory] )
         else:
             subprocess.run(["git", "clone", repo_url, directory])
 
